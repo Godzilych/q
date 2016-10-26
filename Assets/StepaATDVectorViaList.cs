@@ -1,4 +1,0 @@
-﻿//class StepaATDVectorViaList: IStepaATDVector
-//{
-
-//}
