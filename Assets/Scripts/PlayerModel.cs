@@ -8,6 +8,7 @@ public class PlayerModel : MonoBehaviour
     float maxRotSpeed;
     float physicsMass = 1;
     float accPower = 8;
+    float dragBase = 2f;
 
     float curSpeed = 0;
     float curRotSpeed;
@@ -15,37 +16,43 @@ public class PlayerModel : MonoBehaviour
 
     float moveSpeed = 1;
     float roamSpeed = 0.15f;
-    float rotationSpeed = 3;
+    float rotationSpeed = 2;
 
-    GameObject target;
+    public GameObject targetObj;
     Vector3 direction;
+    Vector3 directionTrue;
     Vector3 lastPos= Vector3.zero;
     Vector3 trust;
     Vector3 drag;
     Vector3 velo;
-    Rigidbody rb;
 
     // Use this for initialization
     void Start ()
     {
-        target = GameObject.Find("Target");
-        rb = this.GetComponent<Rigidbody>();
+        targetObj = GameObject.Find("Target");
 	}
 	
 	// Update is called once per frame
-	void Update ()
+	void FixedUpdate ()
     {
-        direction = (target.transform.position - transform.position).normalized;
-
-        if (Vector3.Distance(target.transform.position, transform.position) > 0.05)
+        if (targetObj.activeInHierarchy==true)
         {
-            Facing(direction);
+            directionTrue = (targetObj.transform.position - transform.position).normalized;
+            direction = (targetObj.transform.position - transform.position - velo).normalized;
         }
 
-        if (Vector3.Distance(transform.position, target.transform.position) > 0.05)
+        if (Vector3.Distance(targetObj.transform.position, transform.position) < 0.05f)
         {
-            Move(direction);
+            direction=Vector3.zero;
+            targetObj.SetActive(false);
         }
+
+        //if (Vector3.Distance(transform.position, target.transform.position) > 0.05)
+        //{
+        //    Move(direction);
+        //}
+        Facing(directionTrue);
+        Move(direction);
     }
 
 
@@ -54,7 +61,7 @@ public class PlayerModel : MonoBehaviour
     {
         target.y = 0;
         
-        transform.rotation = Quaternion.LookRotation( Vector3.RotateTowards(transform.forward, target, rotationSpeed * (1 - curSpeed/maxSpeed) * Time.deltaTime, 0));
+        transform.rotation = Quaternion.LookRotation( Vector3.RotateTowards(transform.forward, target, rotationSpeed * Mathf.Clamp(1 - curSpeed/maxSpeed, 0, 1) * Time.deltaTime, 0));
     }
 
     // move footballer in desired direction, speed depends on facing
@@ -64,7 +71,7 @@ public class PlayerModel : MonoBehaviour
         float dirModifier = Mathf.Lerp(roamSpeed, moveSpeed, 1 - Vector3.Angle(transform.forward, direction) / 180);
 
         trust = direction * accPower / physicsMass * dirModifier * Time.deltaTime;
-        drag =  velo.normalized * trust.magnitude * curSpeed / maxSpeed * -1;
+        drag = - velo * curSpeed / maxSpeed * Time.deltaTime;
 
         velo = velo + trust + drag;
 

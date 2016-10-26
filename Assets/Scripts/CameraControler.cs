@@ -42,6 +42,7 @@ public class CameraControler : MonoBehaviour
             {
                 Debug.Log(hit.point);
                 target.transform.Translate(-target.transform.position.x + hit.point.x, 0, -target.transform.position.z + hit.point.z);
+                target.SetActive(true);
             }
         }
     }
